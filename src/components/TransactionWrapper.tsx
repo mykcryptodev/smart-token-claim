@@ -10,22 +10,30 @@ import type {
   TransactionError,
   TransactionResponse,
 } from '@coinbase/onchainkit/transaction';
-import type { Address, ContractFunctionParameters } from 'viem';
+import { type Address, encodeFunctionData } from 'viem';
 import {
-  BASE_SEPOLIA_CHAIN_ID,
-  mintABI,
-  mintContractAddress,
+  BASE_CHAIN_ID,
+  smartTokenAbi,
+  smartTokenAddress,
 } from '../constants';
 
 export default function TransactionWrapper({ address }: { address: Address }) {
-  const contracts = [
-    {
-      address: mintContractAddress,
-      abi: mintABI,
-      functionName: 'mint',
-      args: [address],
-    },
-  ] as unknown as ContractFunctionParameters[];
+  const prepareClaimCall = {
+    to: smartTokenAddress as Address,
+    data: encodeFunctionData({
+      abi: smartTokenAbi,
+      functionName: 'prepapreClaim', // Typo in the function name is expected
+      args: [],
+    }),
+  };
+  const claimCall = {
+    to: smartTokenAddress as Address,
+    data: encodeFunctionData({
+      abi: smartTokenAbi,
+      functionName: 'claim',
+      args: [],
+  })
+  };
 
   const handleError = (err: TransactionError) => {
     console.error('Transaction error:', err);
@@ -38,9 +46,9 @@ export default function TransactionWrapper({ address }: { address: Address }) {
   return (
     <div className="flex w-[450px]">
       <Transaction
-        contracts={contracts}
+        calls={[prepareClaimCall, claimCall]}
         className="w-[450px]"
-        chainId={BASE_SEPOLIA_CHAIN_ID}
+        chainId={BASE_CHAIN_ID}
         onError={handleError}
         onSuccess={handleSuccess}
       >
